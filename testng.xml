@@ -1,16 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
-<suite thread-count="4" parallel="methods" name="Regression-Suite">
+<suite parallel="methods"  thread-count="4" name="Regression-Suite">
 	
 	<listeners>
 		<listener class-name="listeneres.ITestListenerImpl" />
 		<listener class-name="listeneres.IAnnotationTransformerImpl" />
 	</listeners>
 	
-	<test thread-count="4" parallel="methods" name="UserTests">
+	<test parallel="methods" thread-count="4" name="UserTests">
 		
 		<classes>
-			<class name="blogbackend.UserTests" />
+			<class name="apitests.UserTests" />
+			<class name="base.AuthTest" />
 		</classes>
 		
 	</test>
