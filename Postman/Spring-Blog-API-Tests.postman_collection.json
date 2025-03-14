@@ -1,0 +1,1119 @@
+{
+	"info": {
+		"_postman_id": "0c0f3709-da6e-4023-90a2-09db8cd65693",
+		"name": "Spring-Blog-API-Tests",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "15783782"
+	},
+	"item": [
+		{
+			"name": "standalone",
+			"item": [
+				{
+					"name": "LoginAPI",
+					"item": [
+						{
+							"name": "Logout",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"pm.execution.skipRequest();\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8081/logout",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"logout"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Login",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"var jsonData = pm.response.json();\r",
+											"\r",
+											"var respSchema = {\r",
+											"    \"type\": \"object\",\r",
+											"    \"properties\": {\r",
+											"        \"token\": {\r",
+											"            \"type\": \"string\"\r",
+											"        }\r",
+											"    },\r",
+											"    \"required\": [\r",
+											"        \"token\"\r",
+											"    ],\r",
+											"    additionalProperties: false\r",
+											"};\r",
+											"pm.test('Schema is valid', () => {\r",
+											"    pm.response.to.have.jsonSchema(respSchema);\r",
+											"});\r",
+											"\r",
+											"pm.collectionVariables.set(\"token\", jsonData.token);\r",
+											"console.info(\"Token: \" + pm.collectionVariables.get('token'));\r",
+											"\r",
+											"pm.execution.setNextRequest(\"Create-user\");"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"email\": \"{{username}}\",\r\n    \"password\": \"{{password}}\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUri}}/auth/login",
+									"host": [
+										"{{baseUri}}"
+									],
+									"path": [
+										"auth",
+										"login"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "UserAPI",
+					"item": [
+						{
+							"name": "Create-user",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 201\", function () {\r",
+											"    pm.response.to.have.status(201);\r",
+											"});\r",
+											"\r",
+											"// Extracting the response JSON schema\r",
+											"const responseSchema = {\r",
+											"    \"type\": \"object\",\r",
+											"    \"properties\": {\r",
+											"        \"id\": { \"type\": \"number\" },\r",
+											"        \"name\": { \"type\": \"string\" },\r",
+											"        \"email\": { \"type\": \"string\" },\r",
+											"        \"password\": { \"type\": \"string\" },\r",
+											"        \"about\": { \"type\": \"string\" }\r",
+											"    },\r",
+											"    \"required\": [\"id\", \"name\", \"email\", \"password\", \"about\"],\r",
+											"    \"additionalProperties\": false\r",
+											"};\r",
+											"\r",
+											"// Test case to validate the response schema\r",
+											"pm.test(\"Response body matches the schema\", function () {\r",
+											"    pm.response.to.have.jsonSchema(responseSchema);\r",
+											"});\r",
+											"\r",
+											"var respData = pm.response.json();\r",
+											"pm.collectionVariables.set('createdId', respData.id)\r",
+											"pm.execution.setNextRequest(\"Get-single-user\");"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"const Allowed = {\r",
+											"    Uppers: \"QWERTYUIOPASDFGHJKLZXCVBNM\",\r",
+											"    Lowers: \"qwertyuiopasdfghjklzxcvbnm\",\r",
+											"    Numbers: \"1234567890\",\r",
+											"    Symbols: \"!@#$%^&*\"\r",
+											"}\r",
+											"\r",
+											"const getRandomCharFromString = (str) => str.charAt(Math.floor(Math.random() * str.length))\r",
+											"const generatePassword = (length = 10) => { // password will be @Param-length, default to 10, and have at least one upper, one lower, one number and one symbol\r",
+											"    let pwd = \"\";\r",
+											"    pwd += getRandomCharFromString(Allowed.Uppers); //pwd will have at least one upper\r",
+											"    pwd += getRandomCharFromString(Allowed.Lowers); //pwd will have at least one lower\r",
+											"    pwd += getRandomCharFromString(Allowed.Numbers); //pwd will have at least one number\r",
+											"    pwd += getRandomCharFromString(Allowed.Symbols);//pwd will have at least one symbolo\r",
+											"    for (let i = pwd.length; i < length; i++)\r",
+											"        pwd += getRandomCharFromString(Object.values(Allowed).join('')); //fill the rest of the pwd with random characters\r",
+											"    return pwd\r",
+											"}\r",
+											"\r",
+											"\r",
+											"var createdUsername = pm.variables.replaceIn('{{$randomUserName}}');\r",
+											"var createdEmail = pm.variables.replaceIn('{{$randomEmail}}');\r",
+											"var createdPassword = generatePassword(10);\r",
+											"var createdAbout = pm.variables.replaceIn('{{$randomLoremText}}');\r",
+											"\r",
+											"console.info(createdUsername + ' : ' + createdEmail + \" : \" + createdPassword + ' : ' + createdAbout);\r",
+											"\r",
+											"pm.collectionVariables.set('createdUsername', createdUsername);\r",
+											"pm.collectionVariables.set('createdEmail', createdEmail);\r",
+											"pm.collectionVariables.set('createdPassword', createdPassword);\r",
+											"pm.collectionVariables.set('createdAbout', createdAbout);\r",
+											"\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhcXdlQGFvaS5jb20iLCJpYXQiOjE2NzE2NDAxNDYsImV4cCI6MTY3MTY3NjE0Nn0.1-yZ7hJBckChYzx5-DhZKnVRPr8rzCtTTN3kK-nA2gQ",
+										"type": "text",
+										"disabled": true
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\": \"{{createdUsername}}\",\r\n    \"email\": \"{{createdEmail}}\",\r\n    \"password\": \"{{createdPassword}}\",\r\n    \"about\": \"{{createdAbout}}\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUri}}/users/",
+									"host": [
+										"{{baseUri}}"
+									],
+									"path": [
+										"users",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get-single-user",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"// Extracting the response JSON schema\r",
+											"const responseSchema = {\r",
+											"    \"type\": \"object\",\r",
+											"    \"properties\": {\r",
+											"        \"id\": { \"type\": \"number\" },\r",
+											"        \"name\": { \"type\": \"string\" },\r",
+											"        \"email\": { \"type\": \"string\" },\r",
+											"        \"password\": { \"type\": \"string\" },\r",
+											"        \"about\": { \"type\": \"string\" }\r",
+											"    },\r",
+											"    \"required\": [\"id\", \"name\", \"email\", \"password\", \"about\"],\r",
+											"    \"additionalProperties\": false\r",
+											"};\r",
+											"\r",
+											"// Test case to validate the response schema\r",
+											"pm.test(\"Response body matches the schema\", function () {\r",
+											"    pm.response.to.have.jsonSchema(responseSchema);\r",
+											"});\r",
+											"\r",
+											"var respData = pm.response.json();\r",
+											"\r",
+											"// Test case to validate the response data\r",
+											"pm.test(\"Response data matches the created user\", function () {\r",
+											"    pm.expect(respData.id).to.equal(pm.collectionVariables.get(\"createdId\"));\r",
+											"    pm.expect(respData.name).to.equal(pm.collectionVariables.get(\"createdUsername\"));\r",
+											"    pm.expect(respData.email).to.equal(pm.collectionVariables.get(\"createdEmail\"));\r",
+											"    pm.expect(respData.about).to.equal(pm.collectionVariables.get(\"createdAbout\"));\r",
+											"    pm.expect(respData.password.length).to.greaterThan(10);\r",
+											"});\r",
+											"\r",
+											"pm.execution.setNextRequest(\"Get-all-user\");"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUri}}/users/{{createdId}}",
+									"host": [
+										"{{baseUri}}"
+									],
+									"path": [
+										"users",
+										"{{createdId}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get-all-user",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"// Create schema variable for the response with additionalProperty set to false\r",
+											"const responseSchema = {\r",
+											"    \"type\": \"array\",\r",
+											"    \"items\": {\r",
+											"        \"type\": \"object\",\r",
+											"        \"properties\": {\r",
+											"            \"id\": { \"type\": \"number\" },\r",
+											"            \"name\": { \"type\": \"string\" },\r",
+											"            \"email\": { \"type\": \"string\", \"format\": \"email\" },\r",
+											"            \"password\": { \"type\": \"string\" },\r",
+											"            \"about\": { \"type\": \"string\" }\r",
+											"        },\r",
+											"        \"required\": [\"id\", \"name\", \"email\", \"password\", \"about\"],\r",
+											"        \"additionalProperties\": false\r",
+											"    }\r",
+											"};\r",
+											"\r",
+											"// Test case to validate the response schema\r",
+											"pm.test(\"Response body matches the schema\", function () {\r",
+											"    pm.response.to.have.jsonSchema(responseSchema);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Response contains created user\", function () {\r",
+											"    var respData = pm.response.json();\r",
+											"    var flag = false;\r",
+											"    respData.forEach((e) => {\r",
+											"        if(e.id == pm.collectionVariables.get('createdId')) {\r",
+											"            console.log(e);\r",
+											"            flag = true;\r",
+											"            pm.expect(e.id).to.equal(pm.collectionVariables.get(\"createdId\"));\r",
+											"            pm.expect(e.name).to.equal(pm.collectionVariables.get(\"createdUsername\"));\r",
+											"            pm.expect(e.email).to.equal(pm.collectionVariables.get(\"createdEmail\"));\r",
+											"            pm.expect(e.about).to.equal(pm.collectionVariables.get(\"createdAbout\"));\r",
+											"            pm.expect(e.password.length).to.greaterThan(10);\r",
+											"        }\r",
+											"    });\r",
+											"    pm.expect(flag).to.be.true;\r",
+											"});\r",
+											"\r",
+											"pm.execution.setNextRequest(\"Update-user\");\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUri}}/users/",
+									"host": [
+										"{{baseUri}}"
+									],
+									"path": [
+										"users",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update-user",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"var createdUsername = pm.variables.replaceIn('{{$randomUserName}}');\r",
+											"var createdAbout = pm.variables.replaceIn('{{$randomLoremText}}');\r",
+											"\r",
+											"pm.collectionVariables.set('createdUsername', createdUsername);\r",
+											"pm.collectionVariables.set('createdAbout', createdAbout);\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"// Extracting the response JSON schema\r",
+											"const responseSchema = {\r",
+											"    \"type\": \"object\",\r",
+											"    \"properties\": {\r",
+											"        \"id\": { \"type\": \"number\" },\r",
+											"        \"name\": { \"type\": \"string\" },\r",
+											"        \"email\": { \"type\": \"string\" },\r",
+											"        \"password\": { \"type\": \"string\" },\r",
+											"        \"about\": { \"type\": \"string\" }\r",
+											"    },\r",
+											"    \"required\": [\"id\", \"name\", \"email\", \"password\", \"about\"],\r",
+											"    \"additionalProperties\": false\r",
+											"};\r",
+											"\r",
+											"// Test case to validate the response schema\r",
+											"pm.test(\"Response body matches the schema\", function () {\r",
+											"    pm.response.to.have.jsonSchema(responseSchema);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Response body has updated values\", function () {\r",
+											"    var respData = pm.response.json();\r",
+											"    pm.expect(respData.name).to.equal(pm.collectionVariables.get(\"createdUsername\"));\r",
+											"    pm.expect(respData.about).to.equal(pm.collectionVariables.get(\"createdAbout\"));\r",
+											"});\r",
+											"\r",
+											"pm.execution.setNextRequest(\"Delete-user\");"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\": \"{{createdUsername}}\",\r\n    \"email\": \"{{createdEmail}}\",\r\n    \"password\": \"{{createdPassword}}\",\r\n    \"about\": \"{{createdAbout}}\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUri}}/users/{{createdId}}",
+									"host": [
+										"{{baseUri}}"
+									],
+									"path": [
+										"users",
+										"{{createdId}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete-user",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"// Extracting the response JSON schema\r",
+											"const responseSchema = {\r",
+											"    \"type\": \"object\",\r",
+											"    \"properties\": {\r",
+											"        \"message\": { \"type\": \"string\" },\r",
+											"        \"success\": { \"type\": \"boolean\" },\r",
+											"        \"timestamp\": { \"type\": \"string\" }\r",
+											"    },\r",
+											"    \"required\": [\"message\", \"success\", \"timestamp\"],\r",
+											"    \"additionalProperties\": false\r",
+											"};\r",
+											"\r",
+											"// Test case to validate the response schema\r",
+											"pm.test(\"Response body matches the schema\", function () {\r",
+											"    pm.response.to.have.jsonSchema(responseSchema);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Response data is success\", function () {\r",
+											"    var respData = pm.response.json();\r",
+											"    pm.expect(respData.message).to.equal(\"User deleted successfully\");\r",
+											"    pm.expect(respData.success).to.equal(true);\r",
+											"});\r",
+											"\r",
+											"// pm.execution.setNextRequest(\"Get-single-user\");"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{baseUri}}/users/{{createdId}}",
+									"host": [
+										"{{baseUri}}"
+									],
+									"path": [
+										"users",
+										"{{createdId}}"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "CategoryAPI",
+					"item": [
+						{
+							"name": "Create-category",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"categoryTitle\": \"SQL\",\r\n    \"categoryDesc\": \"Posts related to database queries\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUri}}/categories/",
+									"host": [
+										"{{baseUri}}"
+									],
+									"path": [
+										"categories",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get-category",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"categoryTitle\": \"GK\",\r\n    \"categoryDesc\": \"Post related to general knowledge\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUri}}/categories/1",
+									"host": [
+										"{{baseUri}}"
+									],
+									"path": [
+										"categories",
+										"1"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get-all-category",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"categoryTitle\": \"GK\",\r\n    \"categoryDesc\": \"Post related to general knowledge\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUri}}/categories/",
+									"host": [
+										"{{baseUri}}"
+									],
+									"path": [
+										"categories",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update-category",
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"categoryTitle\": \"Current\",\r\n    \"categoryDesc\": \"Post related to Current affairs\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUri}}/categories/3",
+									"host": [
+										"{{baseUri}}"
+									],
+									"path": [
+										"categories",
+										"3"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete-category",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"categoryTitle\": \"Tem2\",\r\n    \"categoryDesc\": \"Temp2 techno\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUri}}/categories/4",
+									"host": [
+										"{{baseUri}}"
+									],
+									"path": [
+										"categories",
+										"4"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "PostsAPI",
+					"item": [
+						{
+							"name": "Create-post",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"title\": \"Post16\",\r\n    \"content\": \"Post about Post16\",\r\n    \"imageName\": \"16th-image.png\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUri}}/posts/user/4/category/3",
+									"host": [
+										"{{baseUri}}"
+									],
+									"path": [
+										"posts",
+										"user",
+										"4",
+										"category",
+										"3"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get-all-posts",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"categoryTitle\": \"GK\",\r\n    \"categoryDesc\": \"Post related to general knowledge\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUri}}/posts/?pageNumber=0&pageSize=5&sortBy=id&sortDir=asc",
+									"host": [
+										"{{baseUri}}"
+									],
+									"path": [
+										"posts",
+										""
+									],
+									"query": [
+										{
+											"key": "pageNumber",
+											"value": "0"
+										},
+										{
+											"key": "pageSize",
+											"value": "5"
+										},
+										{
+											"key": "sortBy",
+											"value": "id"
+										},
+										{
+											"key": "sortDir",
+											"value": "asc"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete-post",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"categoryTitle\": \"GK\",\r\n    \"categoryDesc\": \"Post related to general knowledge\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUri}}/posts/11",
+									"host": [
+										"{{baseUri}}"
+									],
+									"path": [
+										"posts",
+										"11"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get-posts-by-users",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"categoryTitle\": \"GK\",\r\n    \"categoryDesc\": \"Post related to general knowledge\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUri}}/posts/user/3",
+									"host": [
+										"{{baseUri}}"
+									],
+									"path": [
+										"posts",
+										"user",
+										"3"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get-posts-by-category",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"categoryTitle\": \"GK\",\r\n    \"categoryDesc\": \"Post related to general knowledge\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUri}}/posts/category/3",
+									"host": [
+										"{{baseUri}}"
+									],
+									"path": [
+										"posts",
+										"category",
+										"3"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update-post",
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"title\": \"UpdatePost2\",\r\n    \"content\": \"Post about Post2, after update\",\r\n    \"imageName\": \"Updated-2nd-image.png\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUri}}/posts/2",
+									"host": [
+										"{{baseUri}}"
+									],
+									"path": [
+										"posts",
+										"2"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Search-posts",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"categoryTitle\": \"GK\",\r\n    \"categoryDesc\": \"Post related to general knowledge\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUri}}/posts/search/6",
+									"host": [
+										"{{baseUri}}"
+									],
+									"path": [
+										"posts",
+										"search",
+										"6"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "CommentAPI",
+					"item": [
+						{
+							"name": "Create-comment",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"content\": \"Comment on user 2 post 5\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUri}}/comments/user/2/post/5",
+									"host": [
+										"{{baseUri}}"
+									],
+									"path": [
+										"comments",
+										"user",
+										"2",
+										"post",
+										"5"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete-comment",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"categoryTitle\": \"GK\",\r\n    \"categoryDesc\": \"Post related to general knowledge\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUri}}/comments/1",
+									"host": [
+										"{{baseUri}}"
+									],
+									"path": [
+										"comments",
+										"1"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "E2E",
+			"item": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					"pm.test('Response is JSON', () => {\r",
+					"    // var resp = pm.response.json();\r",
+					"    pm.expect(pm.response).to.be.json;\r",
+					"})"
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUri",
+			"value": "http://localhost:8081/api/v1",
+			"type": "default"
+		},
+		{
+			"key": "username",
+			"value": "aaa@bbb.ccc",
+			"type": "string"
+		},
+		{
+			"key": "password",
+			"value": "a1b2c3d4",
+			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": ""
+		},
+		{
+			"key": "createdUsername",
+			"value": ""
+		},
+		{
+			"key": "createdEmail",
+			"value": ""
+		},
+		{
+			"key": "createdPassword",
+			"value": ""
+		},
+		{
+			"key": "createdAbout",
+			"value": ""
+		},
+		{
+			"key": "createdId",
+			"value": ""
+		}
+	]
+}

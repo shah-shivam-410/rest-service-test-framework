@@ -1,0 +1,1 @@
+newman run Spring-Blog-API-Tests.postman_collection.json --folder LoginAPI --folder UserAPI --color on --verbose --reporters htmlextra,cli
