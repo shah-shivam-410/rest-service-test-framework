@@ -23,3 +23,6 @@ extent-reports
 
 #Intelij IDEA
 .idea
+
+# Allure reports
+allure-results

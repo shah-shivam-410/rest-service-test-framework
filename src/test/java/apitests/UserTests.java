@@ -8,7 +8,6 @@ import static org.testng.Assert.assertTrue;
 import java.util.List;
 import java.util.Map;
 
-import org.testng.Assert;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
@@ -16,10 +15,8 @@ import annoatations.Authors;
 import base.BaseTest;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
-import io.restassured.specification.RequestSpecification;
 import listeneres.IAnnotationTransformerImpl;
 import listeneres.ITestListenerImpl;
-import listeneres.ExtentLoggingFilter;
 import reporting.ExtentLogger;
 import utils.RandomStringGenerator;
 
@@ -43,14 +40,7 @@ public class UserTests extends BaseTest {
 					"password", getProps("createdPassword"),
 					"about", getProps("createdAbout")
 				);
-		Response response = given()
-		.filter(ALLURE_LOGGING_FILTER)
-		.auth().oauth2((String) getProps("token"))
-		.contentType(ContentType.JSON)
-		.body(requestBody)
-		.post("/users/")
-		.then().statusCode(201)
-		.extract().response();
+		Response response = postRequest(true, "/users/", requestBody);
 		
 		Map<Object, Object> responseBody = response.jsonPath().getMap("$");
 		assertEquals(responseBody.get("name"), requestBody.get("name"));
@@ -63,12 +53,7 @@ public class UserTests extends BaseTest {
 	@Test(groups = {"Sanity"}, priority = 2)
 	@Authors(authors = "Sid")
 	public void getCreatedUserTest() {
-		Response response = given()
-		.filter(ALLURE_LOGGING_FILTER)
-		.pathParam("id", getProps("createdUserId"))
-		.get("/users/{id}")
-		.then().statusCode(200)
-		.extract().response();
+		Response response = getRequest(false, "/users/{id}", Map.of("id", getProps("createdUserId")));
 		
 		assertEquals(String.valueOf(response.jsonPath().getInt("id")), getProps("createdUserId"));
 	}
@@ -76,12 +61,10 @@ public class UserTests extends BaseTest {
 	@Test(groups = {"Sanity", "Regression"}, priority = 3)
 	@Authors(authors = "Shivam")
 	public void getAllUserTest() {
-		Response response = given()
-		.filter(ALLURE_LOGGING_FILTER)
-		.get("/users/")
-		.then().statusCode(200)
-		.body("[0].name", equalTo("Shivam"))
-		.extract().response();
+		Response response = getRequest(false, "/users/", null)
+			.then().statusCode(200)
+			.body("[0].name", equalTo("Shivam"))
+			.extract().response();
 		
 		List<Map> list = response.jsonPath().getList("$", Map.class);
 		assertTrue(list.stream().anyMatch(e -> String.valueOf(e.get("id")).equals(getProps("createdUserId"))), "Created user doesn't exist");
@@ -89,22 +72,14 @@ public class UserTests extends BaseTest {
 	
 	@Test(groups = {"Sanity", "Regression"}, priority = 4)
 	@Authors(authors = "Shivam")
-	public void deleteUserTest() {
+	public void updateUserTest() {
 		setProps("updatedName", RandomStringGenerator.generateAlpha(8));
 		Map<String, String> requestBody = Map.of(
 				"name", getProps("updatedName"),
 				"email", getProps("createdEmail"),
 				"password", getProps("createdPassword"),
 				"about", getProps("createdAbout"));
-		Response response = given()
-		.filter(ALLURE_LOGGING_FILTER)
-		.auth().oauth2((String) getProps("token"))
-		.contentType(ContentType.JSON)
-		.body(requestBody)
-		.pathParam("id", getProps("createdUserId"))
-		.put("/users/{id}")
-		.then().statusCode(200)
-		.extract().response();
+		Response response = putRequest(true, "/users/{id}", requestBody, Map.of("id", getProps("createdUserId")));
 		
 		assertEquals(response.jsonPath().getString("name"), getProps("updatedName"));
 	}
@@ -112,13 +87,8 @@ public class UserTests extends BaseTest {
 	@Test(groups = { "Sanity" }, priority = 5)
 	@Authors(authors = "Sid")
 	public void deletedUserTest() {
-		Response response = given()
-				.filter(ALLURE_LOGGING_FILTER)
-				.auth().oauth2((String) getProps("token"))
-				.pathParam("id", getProps("createdUserId"))
-				.delete("/users/{id}")
-				.then().statusCode(200)
-				.extract().response();
-
-		assertEquals(response.jsonPath().getString("message"), "User deleted successfully");}
+		Response response = deleteRequest(true, "/users/{id}", Map.of("id", getProps("createdUserId")));
+		assertEquals(response.jsonPath().getString("message"), "User deleted successfully");
+	}
+	
 }
