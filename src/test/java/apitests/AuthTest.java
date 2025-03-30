@@ -1,4 +1,4 @@
-package base;
+package apitests;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -10,25 +10,31 @@ import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 import annoatations.Authors;
+import base.BaseTest;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
-import listeneres.RestAssuredFilterImpl;
+import io.restassured.response.Response;
+import listeneres.ExtentLoggingFilter;
 
-public class AuthTest {
+public class AuthTest extends BaseTest {
 	
-	@Test(groups = { "Sanity" })
+
+	@Test(groups = {"Sanity"}, priority = 0)
 	@Authors(authors = "Shivam")
 	public void tokenGenerationTest() {
 		Map<String, String> map = Map.of(
-					"email", "eew@bbb.erwec",
-					"password", "eqgr3223#@"
+					"email", "aaa@bbb.ccc",
+					"password", "a1b2c3d4"
 				);
-		given()
-		.filter(new RestAssuredFilterImpl())
+		Response response = given()
+		.filter(ALLURE_LOGGING_FILTER)
 		.contentType(ContentType.JSON)
 		.body(map)
 		.post("/auth/login")
-		.then().statusCode(200).body("token", notNullValue());
+		.then().statusCode(200).body("token", notNullValue())
+		.extract().response();
+		setProps("token", response.jsonPath().getString("token"));
+		
 		
 	}
 

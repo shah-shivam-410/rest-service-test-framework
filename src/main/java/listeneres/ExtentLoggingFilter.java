@@ -7,7 +7,7 @@ import io.restassured.specification.FilterableRequestSpecification;
 import io.restassured.specification.FilterableResponseSpecification;
 import reporting.ExtentLogger;
 
-public class RestAssuredFilterImpl implements Filter {
+public class ExtentLoggingFilter implements Filter {
 	
 	public static ExtentLogger logger = new ExtentLogger();
 
