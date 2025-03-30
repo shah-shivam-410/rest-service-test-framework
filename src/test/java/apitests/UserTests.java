@@ -32,11 +32,16 @@ public class UserTests extends BaseTest {
 	@Test(groups = {"Regression"}, priority = 1)
 	@Authors(authors = "Shivam")
 	public void createUserTest() {
+		setProps("createdName", RandomStringGenerator.generateAlpha(8));
+		setProps("createdEmail", RandomStringGenerator.generateAlphaNumeric(7) + "@" + RandomStringGenerator.generateAlpha(6) + ".com");
+		setProps("createdPassword", RandomStringGenerator.generateAlphaNumericSpecialChars(8));
+		setProps("createdAbout", RandomStringGenerator.generateAlpha(20));
+
 		Map<String, String> requestBody = Map.of(
-					"name", RandomStringGenerator.generateAlpha(8),
-					"email", RandomStringGenerator.generateAlphaNumeric(7) + "@" + RandomStringGenerator.generateAlpha(6) + ".com",
-					"password", RandomStringGenerator.generateAlphaNumericSpecialChars(8),
-					"about", RandomStringGenerator.generateAlpha(20)
+					"name", getProps("createdName"),
+					"email", getProps("createdEmail"),
+					"password", getProps("createdPassword"),
+					"about", getProps("createdAbout")
 				);
 		Response response = given()
 		.filter(ALLURE_LOGGING_FILTER)
@@ -82,21 +87,38 @@ public class UserTests extends BaseTest {
 		assertTrue(list.stream().anyMatch(e -> String.valueOf(e.get("id")).equals(getProps("createdUserId"))), "Created user doesn't exist");
 	}
 	
-	@Test(groups = {"Sanity", "Regression"}, priority = 3)
+	@Test(groups = {"Sanity", "Regression"}, priority = 4)
 	@Authors(authors = "Shivam")
-	public void updateUserTest() {
+	public void deleteUserTest() {
+		setProps("updatedName", RandomStringGenerator.generateAlpha(8));
+		Map<String, String> requestBody = Map.of(
+				"name", getProps("updatedName"),
+				"email", getProps("createdEmail"),
+				"password", getProps("createdPassword"),
+				"about", getProps("createdAbout"));
 		Response response = given()
 		.filter(ALLURE_LOGGING_FILTER)
-		.get("/users/")
+		.auth().oauth2((String) getProps("token"))
+		.contentType(ContentType.JSON)
+		.body(requestBody)
+		.pathParam("id", getProps("createdUserId"))
+		.put("/users/{id}")
 		.then().statusCode(200)
-		.body("[0].name", equalTo("Shivam"))
 		.extract().response();
 		
-		List<Map> list = response.jsonPath().getList("$", Map.class);
-		assertTrue(list.stream().anyMatch(e -> String.valueOf(e.get("id")).equals(getProps("createdUserId"))), "Created user doesn't exist");
-		
+		assertEquals(response.jsonPath().getString("name"), getProps("updatedName"));
 	}
 	
-	
-	
+	@Test(groups = { "Sanity" }, priority = 5)
+	@Authors(authors = "Sid")
+	public void deletedUserTest() {
+		Response response = given()
+				.filter(ALLURE_LOGGING_FILTER)
+				.auth().oauth2((String) getProps("token"))
+				.pathParam("id", getProps("createdUserId"))
+				.delete("/users/{id}")
+				.then().statusCode(200)
+				.extract().response();
+
+		assertEquals(response.jsonPath().getString("message"), "User deleted successfully");}
 }

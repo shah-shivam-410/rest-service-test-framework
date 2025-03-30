@@ -20,3 +20,6 @@ buildNumber.properties
 # Test folders
 test-output
 extent-reports
+
+#Intelij IDEA
+.idea
