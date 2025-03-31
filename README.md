@@ -106,7 +106,7 @@ This project is licensed under the MIT License. See the [LICENSE](http://_vscode
 For any queries or suggestions, feel free to reach out:
 
 - **Author**: Shivam Shah
-- **Email**: shah.shivam@example.com
+- **Email**: shah.shivam.410@gmail.com
 - **GitHub**: [shah-shivam-410](https://github.com/shah-shivam-410)
 
 
