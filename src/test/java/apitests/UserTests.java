@@ -4,6 +4,7 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
+import static io.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchemaInClasspath;
 
 import java.util.List;
 import java.util.Map;
@@ -48,6 +49,7 @@ public class UserTests extends BaseTest {
 		assertEquals(responseBody.get("about"), requestBody.get("about"));
 		
 		setProps("createdUserId", String.valueOf(response.jsonPath().getInt("id")));
+		response.then().assertThat().body(matchesJsonSchemaInClasspath("schemas/createUserResponseSchema.json"));
 	}
 	
 	@Test(groups = {"Sanity"}, priority = 2)
@@ -56,6 +58,7 @@ public class UserTests extends BaseTest {
 		Response response = getRequest(false, "/users/{id}", Map.of("id", getProps("createdUserId")));
 		
 		assertEquals(String.valueOf(response.jsonPath().getInt("id")), getProps("createdUserId"));
+		response.then().assertThat().body(matchesJsonSchemaInClasspath("schemas/getUserResponseSchema.json"));
 	}
 	
 	@Test(groups = {"Sanity", "Regression"}, priority = 3)
@@ -68,6 +71,7 @@ public class UserTests extends BaseTest {
 		
 		List<Map> list = response.jsonPath().getList("$", Map.class);
 		assertTrue(list.stream().anyMatch(e -> String.valueOf(e.get("id")).equals(getProps("createdUserId"))), "Created user doesn't exist");
+		response.then().assertThat().body(matchesJsonSchemaInClasspath("schemas/getAllUsersResponseSchema.json"));
 	}
 	
 	@Test(groups = {"Sanity", "Regression"}, priority = 4)
@@ -82,6 +86,7 @@ public class UserTests extends BaseTest {
 		Response response = putRequest(true, "/users/{id}", requestBody, Map.of("id", getProps("createdUserId")));
 		
 		assertEquals(response.jsonPath().getString("name"), getProps("updatedName"));
+		response.then().assertThat().body(matchesJsonSchemaInClasspath("schemas/updateUserResponseSchema.json"));
 	}
 	
 	@Test(groups = { "Sanity" }, priority = 5)
@@ -89,6 +94,7 @@ public class UserTests extends BaseTest {
 	public void deletedUserTest() {
 		Response response = deleteRequest(true, "/users/{id}", Map.of("id", getProps("createdUserId")));
 		assertEquals(response.jsonPath().getString("message"), "User deleted successfully");
+		response.then().assertThat().body(matchesJsonSchemaInClasspath("schemas/deleteUserResponseSchema.json"));
 	}
 	
 }

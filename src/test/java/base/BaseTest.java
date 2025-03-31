@@ -7,6 +7,7 @@ import java.util.Properties;
 import org.testng.annotations.BeforeTest;
 
 import io.qameta.allure.restassured.AllureRestAssured;
+import io.qameta.allure.Step;
 import io.restassured.RestAssured;
 import io.restassured.filter.Filter;
 import io.restassured.response.Response;
@@ -23,14 +24,17 @@ public class BaseTest {
 	
 	public static final Properties props = new Properties();
 	
+	@Step("Setting property")
 	public static synchronized void setProps(String key, String object) {
 		props.setProperty(key, String.valueOf(object));
 	}
 	
+	@Step("Getting property")
 	public static synchronized String getProps(String key) {
 		return props.getProperty(key);
 	}
 	
+	@Step("Printing all properties")
 	public static void printProps() {
 		System.out.println(props);
 	}
@@ -47,6 +51,7 @@ public class BaseTest {
 	 * @param body Request body
 	 * @return Response
 	 */
+	@Step("Sending POST request")
 	public Response postRequest(boolean useAuth, String endpoint, Object body) {
 		RequestSpecification request = createRequest(useAuth);
 		return request.body(body).post(endpoint);
@@ -59,6 +64,7 @@ public class BaseTest {
 	 * @param pathParams Path parameters
 	 * @return Response
 	 */
+	@Step("Sending GET request")
 	public Response getRequest(boolean useAuth, String endpoint, Map<String, Object> pathParams) {
 		RequestSpecification request = createRequest(useAuth);
 		if (pathParams != null) {
@@ -75,6 +81,7 @@ public class BaseTest {
 	 * @param pathParams Path parameters
 	 * @return Response
 	 */
+	@Step("Sending PUT request")
 	public Response putRequest(boolean useAuth, String endpoint, Object body, Map<String, Object> pathParams) {
 		RequestSpecification request = createRequest(useAuth);
 		if (pathParams != null) {
@@ -90,6 +97,7 @@ public class BaseTest {
 	 * @param pathParams Path parameters
 	 * @return Response
 	 */
+	@Step("Sending DELETE request")
 	public Response deleteRequest(boolean useAuth, String endpoint, Map<String, Object> pathParams) {
 		RequestSpecification request = createRequest(useAuth);
 		if (pathParams != null) {
@@ -103,6 +111,7 @@ public class BaseTest {
 	 * @param useAuth Whether to include authentication headers
 	 * @return RequestSpecification
 	 */
+	@Step("Creating request with authentication")
 	private RequestSpecification createRequest(boolean useAuth) {
 		RequestSpecification request = given()
 			.filter(ALLURE_LOGGING_FILTER)
@@ -117,6 +126,7 @@ public class BaseTest {
 	 * Generates headers with authentication token.
 	 * @return Map of headers
 	 */
+	@Step("Generating authentication headers")
 	private Map<String, String> getAuthHeaders() {
 		Map<String, String> headers = new HashMap<>();
 		headers.put("Authorization", "Bearer " + getProps("token"));

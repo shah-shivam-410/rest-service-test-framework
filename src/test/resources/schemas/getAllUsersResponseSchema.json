@@ -1,0 +1,32 @@
+{
+    "type": "array",
+    "items": {
+        "type": "object",
+        "properties": {
+            "id": {
+                "type": "number"
+            },
+            "name": {
+                "type": "string"
+            },
+            "email": {
+                "type": "string",
+                "format": "email"
+            },
+            "password": {
+                "type": "string"
+            },
+            "about": {
+                "type": "string"
+            }
+        },
+        "required": [
+            "id",
+            "name",
+            "email",
+            "password",
+            "about"
+        ],
+        "additionalProperties": false
+    }
+}

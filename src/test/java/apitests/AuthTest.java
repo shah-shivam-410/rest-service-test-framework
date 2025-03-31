@@ -2,6 +2,7 @@ package apitests;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static io.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchemaInClasspath;
 
 import java.util.Map;
 
@@ -23,6 +24,7 @@ public class AuthTest extends BaseTest {
 			"password", "a1b2c3d4"
 		);
 		Response response = postRequest(false, "/auth/login", map);
+		response.then().assertThat().body(matchesJsonSchemaInClasspath("schemas/tokenResponseSchema.json"));
 		setProps("token", response.jsonPath().getString("token"));
 	}
 
